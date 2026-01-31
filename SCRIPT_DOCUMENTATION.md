@@ -47,57 +47,72 @@ Detailed documentation for each R script in the repository.
 
 ---
 
-## Cross-Validation and Hyperparameter Tuning
+## Internal Validation and Hyperparameter Tuning
 
 ### `Binary_Internal_Validation_Metrics.R`
 
-**Purpose**: Cross-validation for DGF (binary outcome) prediction
+**Purpose**: Internal validation for DGF (binary outcome) prediction
 
 **What it does**:
 1. Loads training data for DGF prediction
 2. Sets up hyperparameter grid for random forest:
-   - Node sizes: 1, 3, 5, 7, 10, 15, 20, 30, 40, 50
+   - Node sizes: 1, 5, 9
    - Number of trees: 500 (fixed)
 3. Performs 5-fold cross-validation for each hyperparameter
 4. Evaluates using C-statistic (AUC)
 5. Compares against KDPI baseline
-6. Uses bootstrap resampling (500 iterations) for stable estimates
+6. Uses bootstrap resampling (100 iterations) for stable estimates
 7. Saves optimal hyperparameters and performance metrics
 
 **Outputs**:
 - `nodesize_best_rf_DGF.csv`: Optimal node size
 - `C_stats_all_nodesizes_DGF.csv`: Performance across all hyperparameters
 - `training_DGF_prob.csv`: Predicted DGF probabilities on training data
-- Visualization plots (if `Visualize_MSE_or_C_training.R` is run)
-
-**Key Algorithm Details**:
-- Ensures each CV fold has both cases and controls
-- Handles class imbalance in DGF outcome
-- Uses conditional variable importance
+- Visualization plots (when `Visualize_MSE_or_C_training.R` is run)
 
 ### `Continuous_Internal_Validation_Metrics.R`
 
-**Purpose**: Cross-validation for eGFR (continuous outcome) prediction
+**Purpose**: Internal validation for eGFR (continuous outcome) prediction
 
 **What it does**:
 1. Loads training data for eGFR prediction
-2. Same hyperparameter grid as binary version
+2. Same hyperparameter grid as binary version (node sizes: 1, 5, 9)
 3. Performs 5-fold cross-validation
 4. Evaluates using Mean Squared Error (MSE)
 5. Compares against KDPI linear regression baseline
-6. Bootstrap resampling for stable estimates
+6. Bootstrap resampling (100 iterations) for stable estimates
 7. Tracks CKD stage distributions across bootstraps
 
 **Outputs**:
 - `nodesize_best_rf_eGFR.csv`: Optimal node size
 - `MSE_all_nodesizes_eGFR.csv`: Performance across hyperparameters
 - `training_eGFR_rf_and_KDPI.csv`: Predicted eGFRs on training data
-- `CKD_staging_median_bootstrap.csv`: CKD stage distributions
+- `CKD_staging_median_bootstrap.csv`: Median CKD stage distributions across bootstraps
 
-**Special Features**:
-- Computes both RF and KDPI predictions in parallel
-- Tracks CKD staging to ensure clinical validity
-- Uses conditional random forest importance
+---
+
+## Visualization
+
+### `Visualize_MSE_or_C_training.R`
+
+**Purpose**: Visualize internal validation performance across hyperparameters
+
+**What it does**:
+1. Loads saved internal validation results
+2. Reads performance metrics for each node size
+3. Creates line plot showing:
+   - X-axis: Node size
+   - Y-axis: MSE (eGFR) or C-statistic (DGF)
+   - Separate lines for each machine learning model and KDPI baseline
+4. Highlights the optimal number of MRMR-selected features across all algorithms (the point on the graph with the lowest MSE or highest AUC)
+
+**Configuration**:
+Change outcome type at top of script:
+```r
+outcome <- "C"  # or "B" for DGF
+```
+
+**Usage**: Run after internal validation scripts
 
 ---
 
@@ -115,7 +130,7 @@ outcome <- "C"  # Change to "B" for DGF
 **For eGFR (outcome = "C")**:
 
 What it does:
-1. Loads optimal hyperparameters from CV
+1. Loads optimal hyperparameters from internal validation
 2. Trains final RF model on full training set
 3. Trains KDPI linear regression baseline
 4. Saves both models as .rds files
@@ -210,31 +225,6 @@ Outputs:
 
 ---
 
-## Visualization
-
-### `Visualize_MSE_or_C_training.R`
-
-**Purpose**: Visualize cross-validation performance across hyperparameters
-
-**What it does**:
-1. Loads saved CV results from internal validation scripts
-2. Reads performance metrics for each node size
-3. Creates line plot showing:
-   - X-axis: Node size
-   - Y-axis: MSE (eGFR) or C-statistic (DGF)
-   - Separate lines for RF and baseline
-4. Highlights optimal node size
-
-**Configuration**:
-Change outcome type at top of script:
-```r
-outcome <- "C"  # or "B" for DGF
-```
-
-**Usage**: Run after internal validation scripts
-
----
-
 ## Typical Workflow
 
 ### First Time Setup (DGF)
@@ -246,10 +236,10 @@ result <- generate_training_testing_exclusion_data(
   "train_indices.csv", "test_indices.csv", TRUE
 )
 
-# 2. Cross-validation (optional but recommended)
+# 2. Internal validation (required)
 source("R/Binary_Internal_Validation_Metrics.R")
 
-# 3. Visualize CV results (optional)
+# 3. Visualize internal validation results
 source("R/Visualize_MSE_or_C_training.R")
 
 # 4. Train final model and evaluate
@@ -291,16 +281,3 @@ result <- generate_training_testing_exclusion_data(
 - `permimp`
 - `pROC` (ROC curves, AUC)
 - `tidyr`, `gridExtra` (visualization)
-
----
-
-## File Naming Conventions
-
-All intermediate files follow pattern: `[outcome_tag]_[description].csv`
-- `outcome_tag`: "eGFR" or "DGF"
-- Examples:
-  - `eGFR_features_outcome_KDPI_train.csv`
-  - `DGF_rec_test_code.csv`
-  - `nodesize_best_rf_eGFR.csv`
-
-This keeps files organized and prevents overwrites between analyses.

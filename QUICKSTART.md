@@ -59,21 +59,34 @@ result_egfr <- generate_training_testing_exclusion_data(
 )
 ```
 
-### Step 5: Internal Validation (Optional - for hyperparameter tuning)
+### Step 5: Internal Validation (Required for Hyperparameter Tuning)
 
 For DGF:
 ```r
 source("R/Binary_Internal_Validation_Metrics.R")
-# This script performs cross-validation and saves results
+# This script performs internal validation and saves optimal hyperparameters
 ```
 
 For eGFR:
 ```r
 source("R/Continuous_Internal_Validation_Metrics.R")
-# This script performs cross-validation and saves results
+# This script performs internal validation and saves optimal hyperparameters
 ```
 
-### Step 6: Train Final Models and Generate Results
+### Step 6: Visualize Internal Validation Results
+```r
+source("R/Visualize_MSE_or_C_training.R")
+
+# For eGFR prediction - edit outcome variable in the script:
+# outcome <- "C"
+
+# For DGF prediction - edit outcome variable in the script:
+# outcome <- "B"
+
+# Run the script for each outcome type
+```
+
+### Step 7: Train Final Models and Generate Results
 ```r
 source("R/Model_Saving_and_Test_Performance_Metrics_with_Exclusion.R")
 
@@ -84,36 +97,6 @@ source("R/Model_Saving_and_Test_Performance_Metrics_with_Exclusion.R")
 # outcome <- "B"
 
 # Run the script for each outcome type
-```
-
-## Using Pre-trained Models Only
-
-If you just want to use the pre-trained models without retraining:
-
-### For eGFR Prediction
-```r
-# Load the model
-model <- readRDS("models/random_forest_model_optimal_eGFR.rds")
-
-# Prepare your data (must have same features as training data)
-# You'll need to run the feature selection step first to know which features to include
-
-# Make predictions
-predictions <- predict(model, newdata = your_data)
-```
-
-### For DGF Prediction
-```r
-# Load the model  
-model <- readRDS("models/random_forest_model_optimal_DGF.rds")
-
-# Get probability predictions
-probs <- predict(model, newdata = your_data, type = "prob")
-dgf_prob <- probs[, 2]  # Probability of DGF = 1
-
-# Use Youden's index for classification (if available)
-youden_threshold <- read.csv("DGF_Youden_Index.csv")$x
-predictions <- ifelse(dgf_prob > youden_threshold, 1, 0)
 ```
 
 ## Expected Outputs
@@ -153,13 +136,16 @@ Make sure you're in the correct working directory and all required files are pre
 ### Missing package errors
 Install any missing packages using `install.packages("package_name")`
 
-### Different results from paper
-This is expected due to the stochastic nature of:
-- Random forest algorithms
-- Bootstrap resampling
-- Cross-validation
+### Results Variability
+Results may vary from the published analysis due to:
+- Differences in training/testing cohorts
+- Bootstrap resampling procedures
+- Optimization of machine learning models over hyperparameters
+- Cross-validation procedures
+- Randomness in MRMR feature selection
+- Permutation-based feature importance calculations
 
-Results should be similar but may not be exactly identical.
+This variability is expected and inherent to machine learning methods involving stochastic processes.
 
 ### MRMR installation issues
 The `mRMRe` package can be tricky to install. Try:
@@ -175,4 +161,4 @@ BiocManager::install("mRMRe")
 
 ## Questions?
 
-Open an issue on GitHub or contact the repository maintainer.
+Open an issue on GitHub or contact jrub@umd.edu.
