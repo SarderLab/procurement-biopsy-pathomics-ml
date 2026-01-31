@@ -1,0 +1,34 @@
+# R specific
+.Rhistory
+.RData
+.Rproj.user
+*.Rproj
+
+# Output files
+*.pdf
+*.png
+*.jpg
+*.jpeg
+
+# Intermediate CSV files (keep only the main data)
+*_train.csv
+*_test.csv
+*_excluded*.csv
+*_bootstrap*.csv
+*_rec_*.csv
+*_features_*.csv
+*_indices.csv
+*MSE*.csv
+*AUC*.csv
+*Youden*.csv
+*_prob.csv
+*_predictions*.csv
+nodesize*.csv
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
