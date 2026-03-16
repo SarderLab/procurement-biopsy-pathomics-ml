@@ -16,7 +16,9 @@ install.packages(c(
   "tidyr",
   "gridExtra",
   "stringr",
-  "caret"
+  "caret",
+  "foreach",
+  "doParallel"
 ))
 
 # Install mRMRe (may require special installation)
@@ -61,16 +63,18 @@ result_egfr <- generate_training_testing_exclusion_data(
 
 ### Step 5: Internal Validation (Required for Hyperparameter Tuning)
 
+Both scripts automatically loop over 1–100 MRMR-selected features and parallelize the bootstrap resampling across available CPU cores — no manual configuration needed.
+
 For DGF:
 ```r
 source("R/Binary_Internal_Validation_Metrics.R")
-# This script performs internal validation and saves optimal hyperparameters
+# Loops over num.MRMR.features = 1:100, saving one results file per iteration
 ```
 
 For eGFR:
 ```r
 source("R/Continuous_Internal_Validation_Metrics.R")
-# This script performs internal validation and saves optimal hyperparameters
+# Loops over num.MRMR.features = 1:100, saving one results file per iteration
 ```
 
 ### Step 6: Visualize Internal Validation Results

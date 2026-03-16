@@ -67,7 +67,9 @@ install.packages(c(
   "gridExtra",
   "stringr",
   "caret",
-  "mRMRe"
+  "mRMRe",
+  "foreach",
+  "doParallel"
 ))
 ```
 
@@ -115,10 +117,11 @@ generate_training_testing_exclusion_data(
 - `R/Continuous_Internal_Validation_Metrics.R` - for eGFR prediction
 
 These scripts:
-- Perform 5-fold cross-validation with 100 bootstrap resamples
+- Loop over 1–100 MRMR-selected features automatically
+- Perform 5-fold cross-validation with 100 bootstrap resamples (parallelized across available CPU cores)
 - Tune random forest hyperparameters (nodesize: 1, 5, 9)
 - Compare random forest against KDPI baseline
-- Generate internal validation metrics
+- Generate internal validation metrics and save one results file per MRMR feature count
 
 **Helper functions**:
 - `R/Helper_CV_Functions.R` - Cross-validation utilities

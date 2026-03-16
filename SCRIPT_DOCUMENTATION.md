@@ -54,20 +54,21 @@ Detailed documentation for each R script in the repository.
 **Purpose**: Internal validation for DGF (binary outcome) prediction
 
 **What it does**:
-1. Loads training data for DGF prediction
-2. Sets up hyperparameter grid for random forest:
+1. Loops over 1–100 MRMR-selected features automatically
+2. Sets up a parallel backend (uses all available cores minus one) for bootstrap resampling
+3. Sets up hyperparameter grid for random forest:
    - Node sizes: 1, 5, 9
    - Number of trees: 500 (fixed)
-3. Performs 5-fold cross-validation for each hyperparameter
-4. Evaluates using C-statistic (AUC)
-5. Compares against KDPI baseline
-6. Uses bootstrap resampling (100 iterations) for stable estimates
-7. Saves optimal hyperparameters and performance metrics
+4. Performs 5-fold cross-validation for each hyperparameter
+5. Evaluates using C-statistic (AUC)
+6. Compares against KDPI baseline
+7. Uses parallelized bootstrap resampling (100 iterations) for stable estimates
+8. Saves optimal hyperparameters and performance metrics for each MRMR feature count
 
 **Outputs**:
-- `nodesize_best_rf_DGF.csv`: Optimal node size
-- `C_stats_all_nodesizes_DGF.csv`: Performance across all hyperparameters
-- `training_DGF_prob.csv`: Predicted DGF probabilities on training data
+- `nodesize_best_rf_DGF_{N}.csv`: Optimal node size for each MRMR feature count
+- `{N}_MRMR_features_training_C_results.csv`: Internal validation C-statistics for all models at N features
+- `training_DGF_prob_{N}.csv`: Predicted DGF probabilities on training data for each MRMR feature count
 - Visualization plots (when `Visualize_MSE_or_C_training.R` is run)
 
 ### `Continuous_Internal_Validation_Metrics.R`
@@ -75,19 +76,20 @@ Detailed documentation for each R script in the repository.
 **Purpose**: Internal validation for eGFR (continuous outcome) prediction
 
 **What it does**:
-1. Loads training data for eGFR prediction
-2. Same hyperparameter grid as binary version (node sizes: 1, 5, 9)
-3. Performs 5-fold cross-validation
-4. Evaluates using Mean Squared Error (MSE)
-5. Compares against KDPI linear regression baseline
-6. Bootstrap resampling (100 iterations) for stable estimates
-7. Tracks CKD stage distributions across bootstraps
+1. Loops over 1–100 MRMR-selected features automatically
+2. Sets up a parallel backend (uses all available cores minus one) for bootstrap resampling
+3. Same hyperparameter grid as binary version (node sizes: 1, 5, 9)
+4. Performs 5-fold cross-validation
+5. Evaluates using Mean Squared Error (MSE)
+6. Compares against KDPI linear regression baseline
+7. Uses parallelized bootstrap resampling (100 iterations) for stable estimates
+8. Tracks CKD stage distributions across bootstraps, computing and saving median distributions for each MRMR feature count
 
 **Outputs**:
-- `nodesize_best_rf_eGFR.csv`: Optimal node size
-- `MSE_all_nodesizes_eGFR.csv`: Performance across hyperparameters
-- `training_eGFR_rf_and_KDPI.csv`: Predicted eGFRs on training data
-- `CKD_staging_median_bootstrap.csv`: Median CKD stage distributions across bootstraps
+- `nodesize_best_rf_eGFR_{N}.csv`: Optimal node size for each MRMR feature count
+- `training_eGFR_rf_and_KDPI_{N}.csv`: Predicted eGFRs on training data for each MRMR feature count
+- `CKD_staging_median_bootstrap_{N}.csv`: Median CKD stage distributions across bootstraps for each MRMR feature count
+- `{N}_MRMR_features_training_MSE_results.csv`: Internal validation MSEs for all models at N features
 
 ---
 
@@ -273,8 +275,9 @@ result <- generate_training_testing_exclusion_data(
 
 ### Binary/Continuous_Internal_Validation_Metrics.R
 - `randomForest`
-- `glmnet` (LASSO/ridge, though not used in final models)
-- `permimp` (variable importance)
+- `glmnet` (LASSO/ridge/elastic net)
+- `pROC` (AUC; binary script only)
+- `foreach`, `doParallel` (parallelized bootstrap)
 
 ### Model_Saving_and_Test_Performance_Metrics_with_Exclusion.R
 - `randomForest`
