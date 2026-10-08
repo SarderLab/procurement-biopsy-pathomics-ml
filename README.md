@@ -30,7 +30,6 @@ procurement-biopsy-pathomics-ml/
 ## Data and Models
 
 ### Dataset
-- **File**: `data/Renal_Data.csv`
 - **Download**: [Google Drive Link](https://drive.google.com/file/d/18T2Y90xwVOwHA8zlleTDXX3crGFYoMmy/view?usp=drive_link)
 - Contains donor clinical factors, pathomic features, and transplant outcomes
 - Features include: donor demographics, clinical variables, KDPI scores, and image-derived features
